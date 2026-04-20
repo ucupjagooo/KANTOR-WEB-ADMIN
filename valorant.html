@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Admin Valorant - Agent Protocol</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Antonia:wght@700&family=Barlow:wght@400;600;700;800&display=swap');
+        
+        body { 
+            font-family: 'Barlow', sans-serif; 
+            background: #0f1923; /* Valorant Dark Navy */
+            color: #ece8e1; /* Valorant Off-White */
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, button, .font-valorant {
+            font-family: 'Barlow', sans-serif;
+            text-transform: uppercase;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+        }
+
+        .glass-panel {
+            background: rgba(23, 35, 46, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 70, 85, 0.2);
+        }
+
+        .valo-gradient {
+            background: #ff4655; /* Valorant Red */
+            color: #fff;
+        }
+
+        .valo-border {
+            border: 2px solid #ff4655;
+        }
+
+        body.locked #mainContent {
+            filter: blur(30px);
+            pointer-events: none;
+        }
+
+        .security-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #0f1923;
+            background-image: linear-gradient(rgba(255, 70, 85, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 70, 85, 0.05) 1px, transparent 1px);
+            background-size: 50px 50px;
+        }
+
+        .image-queue-item {
+            position: relative;
+            width: 80px;
+            height: 80px;
+            border-radius: 4px;
+            overflow: hidden;
+            border: 2px solid #363e46;
+        }
+
+        .remove-img-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            background: #ff4655;
+            color: white;
+            border-radius: 2px;
+            width: 18px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .spinner {
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top: 3px solid #ff4655;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #ff4655; border-radius: 0px; }
+        
+        .valorant-input {
+            background: #1f2933;
+            border: 1px solid #363e46;
+            transition: all 0.2s;
+        }
+        .valorant-input:focus {
+            border-color: #ff4655;
+            box-shadow: 0 0 0 2px rgba(255, 70, 85, 0.2);
+        }
+    </style>
+</head>
+<body oncontextmenu="return false" class="select-none locked">
+
+    <!-- Login Overlay -->
+    <div id="loginOverlay" class="security-overlay">
+        <div class="glass-panel p-10 rounded-none shadow-2xl max-w-md w-full border-b-4 border-red-500 text-center">
+            <div class="mb-6 flex justify-center">
+                <svg width="60" height="60" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M50 0L100 50L50 100L0 50L50 0Z" fill="#ff4655"/>
+                </svg>
+            </div>
+            <h2 class="text-3xl font-bold mb-2 text-white tracking-tighter">VALORANT PROTOCOL</h2>
+            <p class="text-gray-400 mb-8 font-medium text-xs tracking-widest">AUTHORIZED PERSONNEL ONLY</p>
+            
+            <input type="password" id="officePassword" placeholder="ENCRYPTION KEY" class="w-full valorant-input rounded-none p-4 mb-4 text-center font-bold outline-none text-white tracking-[0.5em]">
+            
+            <button onclick="checkLogin()" class="w-full py-4 valo-gradient font-bold rounded-none hover:bg-white hover:text-black transition-all tracking-widest">ACCESS DATABASE</button>
+            <div id="loginError" class="mt-4 text-red-500 font-bold text-[10px] uppercase hidden"></div>
+        </div>
+    </div>
+
+    <div id="mainContent" class="p-4 md:p-8 transition-all duration-500 opacity-0">
+        <header class="max-w-7xl mx-auto mb-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <div class="lg:col-span-4 glass-panel rounded-none p-8 flex flex-col justify-center border-l-8 border-red-500">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+                        <span class="text-[10px] font-bold uppercase tracking-[0.3em] text-red-500">System Online</span>
+                    </div>
+                    <h1 class="text-4xl font-black text-white tracking-tighter leading-none">
+                        AGENT<br><span class="text-red-500">ARCHIVE V2</span>
+                    </h1>
+                </div>
+
+                <div class="lg:col-span-8 glass-panel rounded-none p-8 flex flex-col md:flex-row items-center justify-between gap-8 border-t border-gray-800">
+                    <div class="text-center md:text-left">
+                        <div id="realTimeClock" class="text-5xl font-bold text-white leading-none">00:00:00</div>
+                        <div id="currentDate" class="text-[10px] font-bold text-gray-500 mt-2 uppercase tracking-[0.2em]">---</div>
+                    </div>
+                    <div class="flex flex-col items-center md:items-end">
+                        <div id="statusBadge" class="px-3 py-1 bg-red-500/10 border border-red-500 text-red-500 text-[10px] font-bold uppercase tracking-widest mb-2">NETWORK: SECURED</div>
+                        <div class="text-[10px] font-bold text-gray-500 uppercase tracking-widest">Cache: <span id="storageInfo" class="text-white">0 KB</span></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+            <!-- Form Input Akun -->
+            <div class="lg:col-span-5">
+                <div class="glass-panel p-8 rounded-none shadow-xl overflow-y-auto max-h-[85vh] border border-gray-800">
+                    <h2 class="text-sm font-bold text-red-500 mb-8 flex items-center gap-3 tracking-[0.2em]">
+                        DATA INPUT TERMINAL
+                    </h2>
+                    
+                    <form id="valoAccountForm" class="space-y-6">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Transaction</label>
+                                <select id="tipe" class="w-full valorant-input rounded-none p-3 font-bold text-white outline-none">
+                                    <option value="Jual">SELL ACCOUNT</option>
+                                    <option value="Tukar">TRADE / RELEASE</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Current Rank</label>
+                                <select id="rank" class="w-full valorant-input rounded-none p-3 font-bold text-white outline-none">
+                                    <option value="Radiant">💠 RADIANT</option>
+                                    <option value="Immortal">🎖️ IMMORTAL</option>
+                                    <option value="Ascendant">🟢 ASCENDANT</option>
+                                    <option value="Diamond">💎 DIAMOND</option>
+                                    <option value="Platinum">⚪ PLATINUM</option>
+                                    <option value="Gold/Below">🥉 GOLD/BELOW</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Region / Shard</label>
+                                <select id="region" class="w-full valorant-input rounded-none p-3 font-bold text-white outline-none">
+                                    <option value="AP">ASIA PACIFIC (AP)</option>
+                                    <option value="NA">NORTH AMERICA (NA)</option>
+                                    <option value="EU">EUROPE (EU)</option>
+                                    <option value="LATAM">LATAM / BR</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Email Status</label>
+                                <select id="statusEmail" class="w-full valorant-input rounded-none p-3 font-bold text-white outline-none">
+                                    <option value="Verified">✅ Verified / Changeable</option>
+                                    <option value="Unverified">⚠️ Unverified</option>
+                                    <option value="Locked">🔒 Locked / NO Access</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Riot ID #Tag</label>
+                                <input type="text" id="riotId" required placeholder="Jett#FLY" class="w-full valorant-input rounded-none p-3 font-semibold outline-none text-white">
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Password</label>
+                                <input type="text" id="password" required placeholder="RIOT PASS" class="w-full valorant-input rounded-none p-3 font-semibold outline-none text-white">
+                            </div>
+                        </div>
+
+                        <!-- Inventori Valorant -->
+                        <div class="p-6 bg-white/5 rounded-none border-l-2 border-red-500 space-y-4">
+                            <h3 class="text-[9px] font-bold text-red-500 uppercase tracking-[0.2em] flex items-center gap-2">
+                                COLLECTION DETAILS
+                            </h3>
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Key Skins (Premium)</label>
+                                    <input type="text" id="skins" placeholder="Reaver, Elderflame..." class="w-full bg-gray-900 border border-gray-800 rounded-none p-3 font-semibold outline-none text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Melee / Knife</label>
+                                    <input type="text" id="melee" placeholder="Karambit, Fan..." class="w-full bg-gray-900 border border-gray-800 rounded-none p-3 font-semibold outline-none text-white">
+                                </div>
+                            </div>
+                            <div>
+                                <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Additional Notes (Agents, VP/R, Level)</label>
+                                <textarea id="notes" placeholder="Level 150, All Agents, 2000 VP left..." class="w-full bg-gray-900 border border-gray-800 rounded-none p-3 font-semibold outline-none text-white h-20 resize-none"></textarea>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-[9px] font-bold text-gray-500 uppercase tracking-[0.15em] mb-2 ml-1">Visual Intelligence (Screenshots)</label>
+                            <label class="flex flex-col items-center w-full p-4 bg-gray-900 text-red-500 rounded-none border border-dashed border-gray-700 cursor-pointer hover:bg-gray-800 transition">
+                                <span class="text-[10px] font-bold tracking-widest" id="uploadLabel">SELECT IMAGE FILES</span>
+                                <input type='file' id="fotoInput" accept="image/*" class="hidden" multiple onchange="handleFileSelection(event)" />
+                            </label>
+                            <div id="imageQueue" class="flex flex-wrap gap-2 mt-4"></div>
+                        </div>
+
+                        <button type="submit" id="submitBtn" class="w-full valo-gradient font-bold py-5 rounded-none shadow-lg hover:bg-white hover:text-black transition-all uppercase tracking-[0.3em] text-xs flex justify-center items-center">
+                            <span>UPLOAD DATA TO PROTOCOL</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- List Data Akun -->
+            <div class="lg:col-span-7">
+                <div class="glass-panel p-8 rounded-none shadow-xl min-h-[600px] border border-gray-800">
+                    <div class="flex items-center justify-between mb-8">
+                        <h2 class="text-xl font-bold text-white tracking-tighter uppercase">ARCHIVED PROTOCOLS</h2>
+                        <div class="flex gap-4">
+                             <button onclick="exportAllData()" class="text-[9px] font-bold text-gray-500 uppercase tracking-widest hover:text-red-500 transition">Backup DB</button>
+                             <button onclick="hapusSemua()" class="text-[9px] font-bold text-red-500 uppercase tracking-widest hover:underline transition">Purge All</button>
+                        </div>
+                    </div>
+                    
+                    <div id="listData" class="space-y-4"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        let dbData = JSON.parse(localStorage.getItem('valo_admin_secure_data_v1')) || [];
+        const OFFICE_PASS = "kantoradmin"; 
+        
+        let currentPhotoQueue = [];
+
+        function checkLogin() {
+            const input = document.getElementById('officePassword');
+            if (input.value === OFFICE_PASS) {
+                document.body.classList.remove('locked');
+                document.getElementById('loginOverlay').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('loginOverlay').style.display = 'none';
+                    document.getElementById('mainContent').style.opacity = '1';
+                }, 500);
+            } else {
+                const err = document.getElementById('loginError');
+                err.innerText = "INVALID ENCRYPTION KEY";
+                err.classList.remove('hidden');
+            }
+        }
+
+        async function compressImage(file) {
+            const options = {
+                maxSizeMB: 0.15,
+                maxWidthOrHeight: 1280,
+                useWebWorker: true
+            };
+            try {
+                return await imageCompression(file, options);
+            } catch (error) {
+                console.error(error);
+                return file;
+            }
+        }
+
+        async function handleFileSelection(event) {
+            const files = event.target.files;
+            const uploadLabel = document.getElementById('uploadLabel');
+            uploadLabel.innerText = "COMPRESSING...";
+            
+            for (let i = 0; i < files.length; i++) {
+                const compressedFile = await compressImage(files[i]);
+                const base64 = await toBase64(compressedFile);
+                currentPhotoQueue.push(base64);
+            }
+            
+            renderImageQueue();
+            uploadLabel.innerText = "SELECT IMAGE FILES";
+            event.target.value = '';
+        }
+
+        function removePhotoFromQueue(index) {
+            currentPhotoQueue.splice(index, 1);
+            renderImageQueue();
+        }
+
+        function renderImageQueue() {
+            const container = document.getElementById('imageQueue');
+            container.innerHTML = currentPhotoQueue.map((img, index) => `
+                <div class="image-queue-item">
+                    <img src="${img}" alt="Preview" class="w-full h-full object-cover">
+                    <div class="remove-img-btn" onclick="removePhotoFromQueue(${index})">×</div>
+                </div>
+            `).join('');
+        }
+
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('realTimeClock').innerText = now.toTimeString().split(' ')[0];
+            document.getElementById('currentDate').innerText = now.toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            
+            const size = new Blob([JSON.stringify(dbData)]).size;
+            document.getElementById('storageInfo').innerText = (size / 1024).toFixed(1) + " KB";
+        }
+
+        document.getElementById('valoAccountForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('submitBtn');
+            const originalText = btn.innerHTML;
+            
+            btn.disabled = true;
+            btn.innerHTML = `<span class="spinner"></span> ENCRYPTING...`;
+
+            try {
+                const item = {
+                    id: Date.now(),
+                    waktu: new Date().toLocaleString('id-ID'),
+                    tipe: document.getElementById('tipe').value,
+                    rank: document.getElementById('rank').value,
+                    region: document.getElementById('region').value,
+                    statusEmail: document.getElementById('statusEmail').value,
+                    riotId: document.getElementById('riotId').value,
+                    password: document.getElementById('password').value,
+                    skins: document.getElementById('skins').value || "None",
+                    melee: document.getElementById('melee').value || "Default",
+                    notes: document.getElementById('notes').value || "-",
+                    fotos: [...currentPhotoQueue]
+                };
+
+                dbData.unshift(item);
+                localStorage.setItem('valo_admin_secure_data_v1', JSON.stringify(dbData));
+                
+                renderList();
+                e.target.reset();
+                currentPhotoQueue = [];
+                renderImageQueue();
+            } catch (err) {
+                alert("STORAGE LIMIT REACHED: DELETE OLD LOGS");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        });
+
+        const toBase64 = file => new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+        });
+
+        function renderList() {
+            const list = document.getElementById('listData');
+            if (dbData.length === 0) {
+                list.innerHTML = `<div class="text-center py-24 text-gray-700 font-bold uppercase tracking-[0.4em] text-xs">NO AGENT RECORDS IN DATABASE</div>`;
+                return;
+            }
+
+            list.innerHTML = dbData.map(item => `
+                <div class="bg-[#17232e] p-6 rounded-none border border-gray-800 flex flex-col md:flex-row justify-between items-center gap-4 hover:border-red-500/50 transition-all border-l-4 ${item.tipe === 'Jual' ? 'border-l-red-500' : 'border-l-blue-400'}">
+                    <div class="flex items-start gap-4 w-full md:w-auto">
+                        <div class="w-12 h-12 flex items-center justify-center text-xl bg-gray-900 border border-gray-800">
+                            ${item.tipe === 'Jual' ? '⚔️' : '🛡️'}
+                        </div>
+                        <div class="overflow-hidden">
+                            <div class="flex flex-wrap items-center gap-2 mb-1">
+                                <h3 class="font-bold text-white tracking-tight truncate max-w-[150px] uppercase">${item.riotId}</h3>
+                                <span class="text-[8px] font-bold uppercase px-2 py-0.5 border border-red-500 text-red-500">${item.rank}</span>
+                                <span class="text-[8px] font-bold bg-white text-black px-2 py-0.5">${item.region}</span>
+                            </div>
+                            <p class="text-[9px] font-bold text-gray-500 mb-1">SKINS: ${item.skins} • MELEE: ${item.melee}</p>
+                            <p class="text-[8px] font-bold text-red-500/50 italic">${item.waktu}</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <button onclick="downloadPDF(${item.id})" class="flex-1 md:flex-none px-6 py-3 valo-gradient text-white font-bold text-[9px] uppercase tracking-widest hover:bg-white hover:text-black transition">ARCHIVE PDF</button>
+                        <button onclick="hapusData(${item.id})" class="p-3 text-gray-700 hover:text-red-500 transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function downloadPDF(id) {
+            const data = dbData.find(d => d.id === id);
+            if (!data) return;
+            const doc = new jsPDF();
+            
+            // Valorant Style Header
+            doc.setFillColor(15, 25, 35);
+            doc.rect(0, 0, 210, 50, 'F');
+            doc.setFillColor(255, 70, 85);
+            doc.rect(0, 48, 210, 2, 'F');
+
+            doc.setTextColor(255, 70, 85);
+            doc.setFontSize(28);
+            doc.setFont("helvetica", "bold");
+            doc.text("AGENT PROTOCOL DATA", 20, 28);
+            doc.setFontSize(9);
+            doc.setTextColor(200, 200, 200);
+            doc.text(`HASH_ID: ${data.id} | LOG_TIME: ${data.waktu}`, 20, 38);
+            
+            // Content
+            doc.setTextColor(20, 20, 20);
+            doc.setFontSize(14);
+            doc.setFont("helvetica", "bold");
+            doc.text("01 // CREDENTIALS", 20, 65);
+            doc.setDrawColor(255, 70, 85);
+            doc.line(20, 67, 190, 67);
+            
+            doc.setFontSize(11);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Riot ID: ${data.riotId}`, 20, 77);
+            doc.text(`Encryption (Pass): ${data.password}`, 20, 85);
+            doc.text(`Region: ${data.region}`, 20, 93);
+            doc.text(`Rank Level: ${data.rank}`, 20, 101);
+            doc.text(`Email Authentication: ${data.statusEmail}`, 20, 109);
+
+            doc.setFont("helvetica", "bold");
+            doc.text("02 // ARSENAL & COLLECTION", 20, 125);
+            doc.line(20, 127, 190, 127);
+            doc.setFont("helvetica", "normal");
+            doc.text(`Key Weapon Skins: ${data.skins}`, 20, 137);
+            doc.text(`Tactical Melee: ${data.melee}`, 20, 145);
+            
+            const notesSplit = doc.splitTextToSize(`Operational Notes: ${data.notes}`, 170);
+            doc.text(notesSplit, 20, 153);
+
+            // Evidence
+            if (data.fotos && data.fotos.length > 0) {
+                doc.addPage();
+                doc.setFillColor(15, 25, 35);
+                doc.rect(0, 0, 210, 20, 'F');
+                doc.setTextColor(255, 70, 85);
+                doc.setFont("helvetica", "bold");
+                doc.text(`VISUAL EVIDENCE LOGS`, 20, 13);
+                
+                let currentY = 30;
+                data.fotos.forEach((foto) => {
+                    if (currentY + 80 > 280) { doc.addPage(); currentY = 30; }
+                    try {
+                        doc.addImage(foto, 'JPEG', 20, currentY, 130, 75);
+                        currentY += 85;
+                    } catch (e) { console.error(e); }
+                });
+            }
+
+            doc.save(`VALO_PROTOCOL_${data.riotId}.pdf`);
+        }
+
+        function exportAllData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(dbData));
+            const dl = document.createElement('a');
+            dl.setAttribute("href", dataStr);
+            dl.setAttribute("download", "valorant_protocol_backup.json");
+            dl.click();
+        }
+
+        function hapusData(id) {
+            if (confirm("PURGE THIS RECORD FROM ARCHIVE?")) {
+                dbData = dbData.filter(d => d.id !== id);
+                localStorage.setItem('valo_admin_secure_data_v1', JSON.stringify(dbData));
+                renderList();
+            }
+        }
+
+        function hapusSemua() {
+            if (confirm("DANGER: WIPE ENTIRE DATABASE? DATA CANNOT BE RECOVERED.")) {
+                dbData = [];
+                localStorage.setItem('valo_admin_secure_data_v1', JSON.stringify(dbData));
+                renderList();
+            }
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+        renderList();
+    </script>
+</body>
+</html>

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusat Kendali Admin - Game Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: #0f172a;
+            background-image: radial-gradient(circle at 50% 50%, #1e293b 0%, #0f172a 100%);
+            color: #f8fafc;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow-x: hidden;
+        }
+
+        .glass-card {
+            background: rgba(30, 41, 59, 0.6);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .game-card {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            background: rgba(30, 41, 59, 0.4);
+        }
+
+        .game-card:hover {
+            transform: translateY(-12px) scale(1.05);
+            background: rgba(56, 189, 248, 0.1);
+            border-color: #38bdf8;
+            box-shadow: 0 20px 40px -15px rgba(56, 189, 248, 0.3);
+        }
+
+        .game-card i {
+            transition: transform 0.3s ease;
+        }
+
+        .game-card:hover i {
+            transform: scale(1.2);
+            color: #38bdf8;
+        }
+
+        .step-transition {
+            transition: all 0.5s ease;
+        }
+
+        .hidden-step {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .loader {
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-top: 2px solid #38bdf8;
+            border-radius: 50%;
+            width: 18px;
+            height: 18px;
+            animation: spin 0.8s linear infinite;
+            display: none;
+        }
+
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .input-premium {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(71, 85, 105, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .input-premium:focus {
+            border-color: #38bdf8;
+            background: rgba(15, 23, 42, 1);
+            box-shadow: 0 0 0 4px rgba(56, 189, 248, 0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="max-w-6xl w-full px-6 py-12">
+        
+        <!-- STEP 1: SELEKSI GAME -->
+        <div id="step1" class="step-transition">
+            <div class="text-center mb-16">
+                <h1 class="text-5xl font-extrabold tracking-tight text-white mb-4">Portal Admin</h1>
+                <p class="text-slate-400 text-lg">Silahkan pilih divisi database untuk melanjutkan akses</p>
+            </div>
+            
+            <div class="flex flex-wrap justify-center gap-8">
+                <!-- ROBLOX -->
+                <div onclick="selectGame('Roblox', 'roblox.html')" class="game-card w-40 h-52 rounded-[2.5rem] flex flex-col items-center justify-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl">
+                        <i class="fas fa-cube text-slate-300"></i>
+                    </div>
+                    <span class="font-bold text-xs tracking-[0.2em] uppercase">Roblox</span>
+                </div>
+
+                <!-- FREE FIRE -->
+                <div onclick="selectGame('Free Fire', 'freefire.html')" class="game-card w-40 h-52 rounded-[2.5rem] flex flex-col items-center justify-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl">
+                        <i class="fas fa-fire text-orange-500"></i>
+                    </div>
+                    <span class="font-bold text-xs tracking-[0.2em] uppercase">Free Fire</span>
+                </div>
+
+                <!-- MOBILE LEGENDS -->
+                <div onclick="selectGame('Mobile Legends', 'index.html')" class="game-card w-40 h-52 rounded-[2.5rem] flex flex-col items-center justify-center gap-5 border-sky-500/30 bg-sky-500/5">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl">
+                        <i class="fas fa-shield-halved text-sky-400"></i>
+                    </div>
+                    <span class="font-bold text-xs tracking-[0.2em] uppercase text-sky-400">MLBB</span>
+                </div>
+
+                <!-- VALORANT -->
+                <div onclick="selectGame('Valorant', 'valorant.html')" class="game-card w-40 h-52 rounded-[2.5rem] flex flex-col items-center justify-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl">
+                        <i class="fas fa-crosshairs text-red-500"></i>
+                    </div>
+                    <span class="font-bold text-xs tracking-[0.2em] uppercase">Valorant</span>
+                </div>
+
+                <!-- PUBG -->
+                <div onclick="selectGame('PUBG', 'pubg.html')" class="game-card w-40 h-52 rounded-[2.5rem] flex flex-col items-center justify-center gap-5">
+                    <div class="w-16 h-16 rounded-2xl bg-slate-800/50 flex items-center justify-center text-3xl">
+                        <i class="fas fa-helmet-safety text-yellow-500"></i>
+                    </div>
+                    <span class="font-bold text-xs tracking-[0.2em] uppercase">PUBG</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: LOGIN FORM -->
+        <div id="step2" class="hidden-step">
+            <div class="flex justify-center">
+                <div class="glass-card w-full max-w-md p-10 rounded-[3rem] relative overflow-hidden">
+                    <!-- Glow effect inside card -->
+                    <div class="absolute -top-24 -right-24 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl"></div>
+                    
+                    <button onclick="backToStep1()" class="absolute top-8 left-8 text-slate-500 hover:text-white transition">
+                        <i class="fas fa-arrow-left text-lg"></i>
+                    </button>
+                    
+                    <div class="text-center mb-10">
+                        <div id="activeIcon" class="text-4xl text-sky-400 mb-4 inline-block p-4 bg-sky-500/10 rounded-3xl"></div>
+                        <h2 id="activeTitle" class="text-2xl font-black uppercase tracking-widest text-white"></h2>
+                        <p class="text-slate-400 text-xs mt-2 font-medium uppercase tracking-[0.3em]">Divisi Verifikasi</p>
+                    </div>
+
+                    <form id="loginForm" class="space-y-5">
+                        <input type="hidden" id="posisi">
+                        
+                        <div class="relative">
+                            <i class="fas fa-user absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="text" id="username" required placeholder="Username Admin" 
+                                   class="input-premium w-full pl-12 pr-5 py-5 rounded-2xl text-white placeholder-slate-600 outline-none">
+                        </div>
+
+                        <div class="relative">
+                            <i class="fas fa-lock absolute left-5 top-1/2 -translate-y-1/2 text-slate-500 text-sm"></i>
+                            <input type="password" id="password" required placeholder="Password" 
+                                   class="input-premium w-full pl-12 pr-5 py-5 rounded-2xl text-white placeholder-slate-600 outline-none">
+                        </div>
+
+                        <button type="submit" id="loginBtn" class="w-full bg-sky-500 hover:bg-sky-400 text-slate-900 font-extrabold py-5 rounded-2xl transition-all hover:scale-[1.02] active:scale-95 flex justify-center items-center gap-3 shadow-lg shadow-sky-500/20 uppercase tracking-widest text-sm">
+                            <span>Otorisasi Akses</span>
+                            <div class="loader" id="loginLoader"></div>
+                        </button>
+                    </form>
+
+                    <div id="loginMsg" class="mt-6 text-center text-xs font-bold uppercase tracking-widest hidden"></div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // MASUKKAN URL WEB APP GOOGLE APPS SCRIPT ANDA DI SINI
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbydPhrAg_wD6CVmduBH-tYTHIM8hVJiBXa9ZUKWlPOFXGPUNlYM6GmB_14LWKvw3Qac/exec"; 
+        let currentTargetPage = "";
+
+        function selectGame(gameName, pageUrl) {
+            document.getElementById('posisi').value = gameName;
+            document.getElementById('activeTitle').innerText = gameName;
+            currentTargetPage = pageUrl;
+
+            // Set Icon berdasarkan pilihan
+            const iconMap = {
+                'Roblox': '<i class="fas fa-cube"></i>',
+                'Free Fire': '<i class="fas fa-fire"></i>',
+                'Mobile Legends': '<i class="fas fa-shield-halved"></i>',
+                'Valorant': '<i class="fas fa-crosshairs"></i>',
+                'PUBG': '<i class="fas fa-helmet-safety"></i>'
+            };
+            document.getElementById('activeIcon').innerHTML = iconMap[gameName];
+
+            // Animasi Transisi Ke Form
+            const s1 = document.getElementById('step1');
+            const s2 = document.getElementById('step2');
+            
+            s1.style.opacity = '0';
+            s1.style.transform = 'translateY(-20px)';
+            setTimeout(() => {
+                s1.classList.add('hidden-step');
+                s2.classList.remove('hidden-step');
+                setTimeout(() => {
+                    s2.style.opacity = '1';
+                    s2.style.transform = 'translateY(0)';
+                }, 50);
+            }, 400);
+        }
+
+        function backToStep1() {
+            const s1 = document.getElementById('step1');
+            const s2 = document.getElementById('step2');
+            
+            s2.style.opacity = '0';
+            s2.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                s2.classList.add('hidden-step');
+                s1.classList.remove('hidden-step');
+                setTimeout(() => {
+                    s1.style.opacity = '1';
+                    s1.style.transform = 'translateY(0)';
+                }, 50);
+            }, 400);
+        }
+
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const btn = document.getElementById('loginBtn');
+            const loader = document.getElementById('loginLoader');
+            const msg = document.getElementById('loginMsg');
+            
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const posisi = document.getElementById('posisi').value;
+
+            // Reset UI
+            msg.classList.add('hidden');
+            btn.disabled = true;
+            loader.style.display = 'block';
+
+            // Cek jika URL Script masih kosong
+            if (!SCRIPT_URL) {
+                console.warn("Script URL tidak ditemukan. Menggunakan mode demo.");
+                setTimeout(() => {
+                    msg.innerText = "MODE DEMO: BERHASIL";
+                    msg.className = "mt-6 text-center text-xs font-bold uppercase tracking-widest text-sky-400";
+                    msg.classList.remove('hidden');
+                    setTimeout(() => { window.location.href = currentTargetPage; }, 1000);
+                }, 1500);
+                return;
+            }
+
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    body: JSON.stringify({ username, password, posisi })
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    msg.innerText = result.message;
+                    msg.className = "mt-6 text-center text-xs font-bold uppercase tracking-widest text-green-400";
+                    msg.classList.remove('hidden');
+                    setTimeout(() => { window.location.href = currentTargetPage; }, 1200);
+                } else {
+                    msg.innerText = result.message;
+                    msg.className = "mt-6 text-center text-xs font-bold uppercase tracking-widest text-red-500";
+                    msg.classList.remove('hidden');
+                }
+            } catch (error) {
+                msg.innerText = "Gagal terhubung ke Database!";
+                msg.className = "mt-6 text-center text-xs font-bold uppercase tracking-widest text-red-500";
+                msg.classList.remove('hidden');
+            } finally {
+                btn.disabled = false;
+                loader.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
